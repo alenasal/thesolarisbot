@@ -67,9 +67,9 @@ def others_handler(update, context):
     update.message.reply_text("Hello "+ user.first_name + "!\nYou may wish to explore /encouragement , /love , /exertdominance , /random commands.")
 
 
-def exertdominance_handler(update, context):
+def assertdominance_handler(update, context):
     user = update.message.from_user
-    logger.info("User %s activated the exert dominance alert", user.first_name)
+    logger.info("User %s activated the assert dominance alert", user.first_name)
     update.message.reply_text(user.first_name + " would like to showcase his/her superior knowledge as a domain expert over TheSolarisBot.")
 
 def encouragement_handler(update, context):
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("vendingfixed", vendingfixed_handler))
 
     dp.add_handler(CommandHandler("others", others_handler))
-    dp.add_handler(CommandHandler("exertdominance", exertdominance_handler))
+    dp.add_handler(CommandHandler("assertdominance", assertdominance_handler))
     dp.add_handler(CommandHandler("encouragement", encouragement_handler))
     dp.add_handler(CommandHandler("love", love_handler))
     dp.add_handler(CommandHandler("random", random_handler))
