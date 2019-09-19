@@ -2,6 +2,8 @@ import logging
 import os
 import random
 import sys
+from datetime import date
+
 
 from telegram.ext import Updater, CommandHandler
 
@@ -30,53 +32,81 @@ else:
     sys.exit(1)
 
 
-def start_handler(bot, update):
+def start_handler(update, context):
     # Creating a handler-function for /start command
-    logger.info("User {} started bot".format(update.effective_user["id"]))
-    update.message.reply_text("Hello {}!\nPress /vendingnow to activate the secret vending machine alert or /vending20 to inform your pals 20 mins in advance.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingworking to inform everyone of the revival of the vending machine.".format(update.effective_user["first_name"]))
+    user = update.message.from_user
+    logger.info("User %s started the bot", user.first_name)
+    update.message.reply_text("Hello "+ user.first_name + "!\nUse /vending <approx time> to activate the secret vending machine alert.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingfixed to inform everyone of the revival of the vending machine. \nPress /others to see other functions.")
 
-def vending_handler(bot, update):
-    logger.info("User {} activated the vending machine alert".format(update.effective_user["first_name"]))
-    update.message.reply_text("{} hereby activates the secret chat. We can look forward to a fully stocked vending machine now.".format(update.effective_user["first_name"]))
+def vending_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the vending machine alert", user.first_name)
+    if len(context.args) == 0:
+        update.message.reply_text("Please indicate 'now' or the approx time as an integer after /vending command (eg. /vending 5)")
+    else:
+        if context.args[0] == "now":
+            update.message.reply_text(user.first_name + " hereby activates the secret chat. We can look forward to a fully stocked vending machine now.")
+        elif context.args[0].isdigit():
+            update.message.reply_text(user.first_name + " hereby activates the secret chat. We can look forward to a fully stocked vending machine in " + context.args[0] + " mins.")
+        else:
+            update.message.reply_text("Please indicate 'now' or the approx time as an integer after /vending command (eg. /vending 5)")
 
-def vending20_handler(bot, update):
-    logger.info("User {} activated the vending machine alert 20 mins in advance".format(update.effective_user["first_name"]))
-    update.message.reply_text("{} hereby activates the secret chat. In approximately 20 mins, we can look forward to a fully stocked vending machine.".format(update.effective_user["first_name"]))
+def vendingfaulty_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the faulty vending machine alert", user.first_name)
+    update.message.reply_text(user.first_name + " regrets to inform everyone that the vending machine is faulty. :(")
 
-def vendingfaulty_handler(bot, update):
-    logger.info("User {} activated the faulty vending machine alert".format(update.effective_user["first_name"]))
-    update.message.reply_text("{} regrets to inform everyone that the vending machine is faulty. :(".format(update.effective_user["first_name"]))
-
-def vendingworking_handler(bot, update):
-    logger.info("User {} activated the working vending machine alert".format(update.effective_user["first_name"]))
+def vendingfixed_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the fixed vending machine alert", user.first_name)
     update.message.reply_text("The vending machine has been fixed! Rejoice!!")
 
-def exertdominance_handler(bot, update):
-    logger.info("User {} activated the exert dominance alert".format(update.effective_user["first_name"]))
-    update.message.reply_text("{} would like to showcase his/her superior knowledge as a domain expert over the lowly solarisbot".format(update.effective_user["first_name"]))
+def others_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s started the bot", user.first_name)
+    update.message.reply_text("Hello "+ user.first_name + "!\nYou may wish to explore /encouragement , /love , /exertdominance , /random commands.")
 
-def random_handler(bot, update):
+
+def exertdominance_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the exert dominance alert", user.first_name)
+    update.message.reply_text(user.first_name + " would like to showcase his/her superior knowledge as a domain expert over TheSolarisBot.")
+
+def encouragement_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the encouragement alert", user.first_name)
+    update.message.reply_text("You're doing a great job " + user.first_name + "! Hang in there, you can do this! :)")
+
+def love_handler(update, context):
+    user = update.message.from_user
+    logger.info("User %s activated the love alert", user.first_name)
+    update.message.reply_text("Aww, TheSolarisBot loves you too " + user.first_name + "<3")
+
+
+def random_handler(update, context):
+    user = update.message.from_user
     # Creating a handler-function for /random command
-    number = random.randint(0, 10)
-    logger.info("User {} randomed number {}".format(update.effective_user["id"], number))
-    update.message.reply_text("Random number: {}".format(number))
-
-
-
+    number = random.randint(0, 9999)
+    logger.info("User %s random number ", user.first_name)
+    update.message.reply_text("Here's a random 4-digit number: " + str(number))
 
 
 if __name__ == '__main__':
     logger.info("Starting bot")
-    updater = Updater(TOKEN)
+    updater = Updater(TOKEN, use_context=True)
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
 
-    updater.dispatcher.add_handler(CommandHandler("start", start_handler))
-    updater.dispatcher.add_handler(CommandHandler("random", random_handler))
-    updater.dispatcher.add_handler(CommandHandler("vendingnow", vending_handler))
-    updater.dispatcher.add_handler(CommandHandler("vending20", vending20_handler))
-    updater.dispatcher.add_handler(CommandHandler("vendingfaulty", vendingfaulty_handler))
-    updater.dispatcher.add_handler(CommandHandler("vendingworking", vendingworking_handler))
-    updater.dispatcher.add_handler(CommandHandler("exertdominance", exertdominance_handler))
+    dp.add_handler(CommandHandler("start", start_handler))
+    dp.add_handler(CommandHandler("vending", vending_handler))
+    dp.add_handler(CommandHandler("vendingfaulty", vendingfaulty_handler))
+    dp.add_handler(CommandHandler("vendingfixed", vendingfixed_handler))
 
+    dp.add_handler(CommandHandler("others", others_handler))
+    dp.add_handler(CommandHandler("exertdominance", exertdominance_handler))
+    dp.add_handler(CommandHandler("encouragement", encouragement_handler))
+    dp.add_handler(CommandHandler("love", love_handler))
+    dp.add_handler(CommandHandler("random", random_handler))
 
 
 
