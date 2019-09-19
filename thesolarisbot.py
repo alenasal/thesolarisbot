@@ -64,7 +64,7 @@ def vendingfixed_handler(update, context):
 def others_handler(update, context):
     user = update.message.from_user
     logger.info("User %s started the bot", user.first_name)
-    update.message.reply_text("Hello "+ user.first_name + "!\nYou may wish to explore /encouragement , /love , /exertdominance , /random commands.")
+    update.message.reply_text("Hello "+ user.first_name + "!\nYou may wish to explore /encouragement , /love , /assertdominance , /random commands.")
 
 
 def assertdominance_handler(update, context):
