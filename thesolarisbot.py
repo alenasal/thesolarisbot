@@ -51,6 +51,9 @@ def vendingworking_handler(bot, update):
     logger.info("User {} activated the working vending machine alert".format(update.effective_user["first_name"]))
     update.message.reply_text("The vending machine has been fixed! Rejoice!!")
 
+def exertdominance_handler(bot, update):
+    logger.info("User {} activated the exert dominance alert".format(update.effective_user["first_name"]))
+    update.message.reply_text("{} would like to showcase his/her superior knowledge as a domain expert over the lowly solarisbot".format(update.effective_user["first_name"]))
 
 def random_handler(bot, update):
     # Creating a handler-function for /random command
@@ -72,6 +75,7 @@ if __name__ == '__main__':
     updater.dispatcher.add_handler(CommandHandler("vending20", vending20_handler))
     updater.dispatcher.add_handler(CommandHandler("vendingfaulty", vendingfaulty_handler))
     updater.dispatcher.add_handler(CommandHandler("vendingworking", vendingworking_handler))
+    updater.dispatcher.add_handler(CommandHandler("exertdominance", exertdominance_handler))
 
 
 
