@@ -176,6 +176,19 @@ def closejio_handler(update, context):
     global list_of_attendees
     list_of_attendees= []
 
+def seejio_handler(update, context):
+    global state_of_jios
+    global jio_text
+    if state_of_jios == False:
+        update.message.reply_text("No jios at the moment")
+    else:
+        markdown_text = markdown_output()
+        update.message.reply_text(
+            text="I see that you are too lazy to scroll up. Here's a refresher.\n"+ jio_text + markdown_text,
+            reply_markup=InlineKeyboardMarkup([help_button]),
+        )
+
+
 ##########################################################
 
 
@@ -205,12 +218,8 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler('jiohelper', command_handler_help))
     dp.add_handler(CommandHandler('jiohelperleave', command_handler_leave))
     dp.add_handler(CommandHandler("closejio", closejio_handler))
-
-
+    dp.add_handler(CommandHandler("seejio", seejio_handler))
 
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
-    #updater.start_polling()
-
-
 
     run(updater)
