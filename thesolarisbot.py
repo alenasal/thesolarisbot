@@ -4,10 +4,7 @@ import random
 import sys
 from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
-from telegram import CallbackQuery
 from telegram.ext import CallbackQueryHandler
-from telegram import ParseMode
-
 from telegram.ext import Updater, CommandHandler
 
 # Enabling logging
@@ -212,7 +209,7 @@ if __name__ == '__main__':
 
 
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
-    updater.start_polling()
+    #updater.start_polling()
 
 
 
