@@ -4,4 +4,4 @@ firebase==3.0.1
 python-jwt==3.2.4
 gcloud==0.18.3
 sseclient==0.0.24
-requests_toolbelt==0.9.1
+requests-toolbelt==0.9.1
