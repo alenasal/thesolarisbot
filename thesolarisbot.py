@@ -18,16 +18,7 @@ logger = logging.getLogger()
 # Getting mode, so we could define run function for local and Heroku setup
 mode = os.getenv("MODE")
 TOKEN = os.getenv("TOKEN")
-DATABASE = os.getenv("DATABASE")
 
-config = {
-    "apiKey": "",
-    "authDomain": "",
-    "databaseURL": DATABASE,
-    "storageBucket": ""
-}
-firebase = Firebase(config)
-db = firebase.database()
 
 
 if mode == "dev":
@@ -297,6 +288,19 @@ def seejio_handler(update, context, jio_name):
 if __name__ == '__main__':
     logger.info("Starting bot")
     updater = Updater(TOKEN, use_context=True)
+
+    DATABASE = os.getenv("DATABASE")
+
+    config = {
+        "apiKey": "",
+        "authDomain": "",
+        "databaseURL": DATABASE,
+        "storageBucket": ""
+    }
+    firebase = Firebase(config)
+    db = firebase.database()
+
+
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
