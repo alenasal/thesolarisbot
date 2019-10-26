@@ -7,7 +7,7 @@ from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
-from firebase import Firebase
+#from firebase import Firebase
 
 
 # Enabling logging
@@ -19,7 +19,7 @@ logger = logging.getLogger()
 mode = os.getenv("MODE")
 TOKEN = os.getenv("TOKEN")
 DATABASE = os.getenv("DATABASE")
-
+"""
 config = {
     "apiKey": "",
     "authDomain": "",
@@ -29,7 +29,7 @@ config = {
 firebase = Firebase(config)
 db = firebase.database()
 
-
+"""
 
 if mode == "dev":
     def run(updater):
@@ -119,6 +119,7 @@ def closejio_handler(update, context):
     user = update.message.from_user
 """
 
+"""
 
 JOIN_JIO_BUTTON_CALLBACK_DATA = 'Jio joined'
 LEAVE_JIO_BUTTON_CALLBACK_DATA = 'Jio left'
@@ -291,6 +292,7 @@ def seejio_handler(update, context, jio_name):
     update.callback_query.edit_message_text(text=jio_txt + markdown_attendees,
                                             reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown")
 
+"""
 #########################################################
 
 if __name__ == '__main__':
@@ -309,10 +311,10 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("encouragement", encouragement_handler))
     dp.add_handler(CommandHandler("love", love_handler))
     dp.add_handler(CommandHandler("random", random_handler))
-    dp.add_handler(CommandHandler("seejios", seejios_handler))
-    dp.add_handler(CommandHandler("jio", startjio_handler))
+    #dp.add_handler(CommandHandler("seejios", seejios_handler))
+    #dp.add_handler(CommandHandler("jio", startjio_handler))
 
-    dp.add_handler(CallbackQueryHandler(callback_query_handler))
+    #dp.add_handler(CallbackQueryHandler(callback_query_handler))
 
 
 
