@@ -5,3 +5,4 @@ python-jwt==3.2.4
 gcloud==0.18.3
 sseclient==0.0.24
 requests-toolbelt==0.9.1
+crypto==1.4.1
