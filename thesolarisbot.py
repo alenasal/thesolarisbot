@@ -7,7 +7,7 @@ from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
-#from firebase import Firebase
+from firebase import Firebase
 
 
 # Enabling logging
