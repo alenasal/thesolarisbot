@@ -316,7 +316,7 @@ if __name__ == '__main__':
 
 
 
-    """ Temp way to send daily reminders to specific chat"""
+    """ Temp way to send daily reminders to specific chat
     bot = telegram.Bot(token=TOKEN)
     day = date.today().weekday()
 
@@ -327,6 +327,8 @@ if __name__ == '__main__':
             bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
     except:
         logger.info('No announcements today')
+        
+    """
 
     run(updater)
 
