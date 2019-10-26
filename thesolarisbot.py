@@ -6,6 +6,8 @@ from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
+from firebase import Firebase
+
 
 # Enabling logging
 logging.basicConfig(level=logging.INFO,
@@ -15,6 +17,19 @@ logger = logging.getLogger()
 # Getting mode, so we could define run function for local and Heroku setup
 mode = os.getenv("MODE")
 TOKEN = os.getenv("TOKEN")
+DATABASE = os.getenv("DATABASE")
+
+config = {
+    "apiKey": "",
+    "authDomain": "",
+    "databaseURL": DATABASE,
+    "storageBucket": ""
+}
+firebase = Firebase(config)
+db = firebase.database()
+
+
+
 if mode == "dev":
     def run(updater):
         updater.start_polling()
@@ -93,100 +108,183 @@ def random_handler(update, context):
 ####### JIOS #########
 
 
+"""
+TODO:Close jios
+def closejio_handler(update, context):
+    user = update.message.from_user
+"""
 
-HELP_BUTTON_CALLBACK_DATA = 'Jio joined'
-LEAVE_BUTTON_CALLBACK_DATA = 'Jio left'
+
+JOIN_JIO_BUTTON_CALLBACK_DATA = 'Jio joined'
+LEAVE_JIO_BUTTON_CALLBACK_DATA = 'Jio left'
 
 
-help_button = [InlineKeyboardButton(
+jio_options_button = [InlineKeyboardButton(
     text='Join', # text that is shown to user
-    callback_data=HELP_BUTTON_CALLBACK_DATA # text that is sent to bot when user tap button
+    callback_data=JOIN_JIO_BUTTON_CALLBACK_DATA # text that is sent to bot when user tap button
     ),InlineKeyboardButton(
     text='Leave', # text that is shown to user
-    callback_data=LEAVE_BUTTON_CALLBACK_DATA # text that is sent to bot when user tap button
+    callback_data=LEAVE_JIO_BUTTON_CALLBACK_DATA # text that is sent to bot when user tap button
     ),]
 
-def command_handler_start(update,context):
-    global state_of_jios
-    if state_of_jios == True:
-        update.message.reply_text("Please close the previous jio with /closejio before opening a new jio.")
+
+def startjio_handler(update, context):
+    chatId = update.message.chat.id
+    messageId = update.message.message_id
+    user = update.message.from_user
+
+    jio_name = ' '.join(word for word in context.args)
+
+    if len(context.args) < 1:
+        update.message.reply_text("Please add a title after /jio. \n(Eg. /jio pantry run at 1830)")
     else:
-        user = update.message.from_user
-        if len(context.args) <= 1:
-            update.message.reply_text("Please add a title(without spaces) and time after /jio. \n(Eg. /jio pingpong 1830)")
+        new_jio = jio_name
+
+        #if no jios in chat
+        if db.child("jios").child("chatId").child(chatId).get().val() == None:
+            db.child("jios").child("chatId").child(chatId).child(new_jio).set({'attendees': {'personA':True}, 'creator':user.first_name})
         else:
-            global jio_text
-            state_of_jios = True
-            jio_text = user.first_name + " has jioed for " + context.args[0] + " at " + context.args[1] + ". Click 'join' if you are interested!\n\nMinions attending:"
-            list_of_attendees.append(user.first_name)
-            markdown_text = markdown_output()
-            update.message.reply_text(
-                text=jio_text + markdown_text,
-                reply_markup=InlineKeyboardMarkup([help_button]),
-                )
+            jioInfo = db.child("jios").child("chatId").child(chatId).get()
+            # add a new jio
+            current_jios = jioInfo.val()
+            current_jios[new_jio] = {'attendees': {user.first_name:True}, 'creator':user.first_name}
+            db.child("jios").child("chatId").child(chatId).set(current_jios)
 
-def command_handler_help(update,context):
+        jioInfo = db.child("jios").child("chatId").child(chatId).get()
+        attendees_list = jioInfo.val()[new_jio]["attendees"]
+
+
+        #### TODO:change messages to be specific to chat id
+        current_messages = db.child("jios").child("messageId").get().val()
+        messageId = messageId + 1
+        current_messages[messageId] = jio_name
+        db.child("jios").child("messageId").set(current_messages)
+
+
+        jio_name = "*" + jio_name + "*"
+        jio_txt = user.first_name + " started a jio: " + jio_name + "\n\nMinions attending:"
+
+        markdown_attendees ="\n"
+        markdown_attendees += "".join(["- " + str(s) + "\n" for s in attendees_list])
+
+        update.message.reply_text(
+            text=jio_txt + markdown_attendees,
+            reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown"
+        )
+
+
+def command_handler_join_jio(update,context):
+    chatId = update.callback_query.message.chat.id
+    messageId = update.callback_query.message.message_id
+
     user_name = update.effective_user.first_name
+    jio_name = db.child("jios").child("messageId").child(messageId).get().val()
+
     try:
-        if user_name not in list_of_attendees:
-            list_of_attendees.append(user_name)
+        attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
 
-        markdown_text = markdown_output()
-        update.callback_query.edit_message_text(text=jio_text + markdown_text,
-                                                reply_markup=InlineKeyboardMarkup([help_button]), )
+        if user_name not in attendees_list:
+            db.child("jios").child("chatId").child(chatId).child(jio_name).child("attendees").child(user_name).set(True)
+
+
+        attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
+
+        creator = db.child("jios").child("chatId").child(chatId).child(jio_name).child('creator').get().val()
+        jio_name = "*" + jio_name + "*"
+        jio_txt = creator + " started a jio: " + jio_name +  "\n\nMinions attending:"
+
+        markdown_attendees = "\n"
+        markdown_attendees += "".join(["- " + str(s) + "\n" for s in attendees_list])
+        update.callback_query.edit_message_text(text=jio_txt + markdown_attendees,
+                                                reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown")
+
     except:
-        logger.info("pressed button again")
+        logger.info(user_name + ' has already joined the jio')
 
 
-def command_handler_leave(update,context):
+def command_handler_leave_jio(update,context):
+    chatId = update.callback_query.message.chat.id
+    messageId = update.callback_query.message.message_id
+
     user_name = update.effective_user.first_name
-    try:
-        if user_name in list_of_attendees:
-            list_of_attendees.remove(user_name)
+    jio_name = db.child("jios").child("messageId").child(messageId).get().val()
 
-        markdown_text = markdown_output()
-        update.callback_query.edit_message_text(text=jio_text + markdown_text,
-                                                reply_markup=InlineKeyboardMarkup([help_button]), )
+    try:
+        attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
+
+        if (user_name in attendees_list) and (len(attendees_list)>1):
+            db.child("jios").child("chatId").child(chatId).child(jio_name).child("attendees").child(user_name).remove()
+        elif (user_name in attendees_list) and (len(attendees_list)==1):
+            update.callback_query.message.reply_text("You can't leave the jio as you are the last man standing")
+
+
+        attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
+
+        creator = db.child("jios").child("chatId").child(chatId).child(jio_name).child('creator').get().val()
+        jio_name = "*" + jio_name + "*"
+        jio_txt = creator + " started a jio: " + jio_name +  "\n\nMinions attending:"
+
+        markdown_attendees = "\n"
+        markdown_attendees += "".join(["- " + str(s) + "\n" for s in attendees_list])
+        update.callback_query.edit_message_text(text=jio_txt + markdown_attendees,
+                                                reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown")
     except:
-        logger.info("pressed button again")
+        logger.info('Cannot leave jio as ' +user_name + ' has not joined the jio')
 
 
 def callback_query_handler(update,context):
     cqd = update.callback_query.data
-    #jio_text = update.callback_query.message.text
-    if cqd == HELP_BUTTON_CALLBACK_DATA:
-        command_handler_help(update,context)
-    elif cqd == LEAVE_BUTTON_CALLBACK_DATA:
-        command_handler_leave(update,context)
+    if cqd == JOIN_JIO_BUTTON_CALLBACK_DATA:
+        command_handler_join_jio(update,context)
+    elif cqd == LEAVE_JIO_BUTTON_CALLBACK_DATA:
+        command_handler_leave_jio(update,context)
+    else:
+        seejio_handler(update,context,cqd)
 
 
-def markdown_output():
-    string ="\n"
-    string += "".join(["- " + str(s) + "\n" for s in list_of_attendees])
-    return string
+def seejios_handler(update, context):
+    chatId = update.message.chat.id
+    jioInfo = db.child("jios").child("chatId").child(chatId).get()
 
+    def build_menu(buttons,
+                   n_cols):
+        menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+        return menu
 
-def closejio_handler(update, context):
-    user = update.message.from_user
-    logger.info("User %s has closed the jio", user.first_name)
-    markdown_text = markdown_output()
-    update.message.reply_text("Jio closed. You may now start a new jio.")
-    global state_of_jios
-    state_of_jios = False
-    global list_of_attendees
-    list_of_attendees= []
-
-def seejio_handler(update, context):
-    global state_of_jios
-    global jio_text
-    if state_of_jios == False:
+    if len(jioInfo.val())==0:
         update.message.reply_text("No jios at the moment")
     else:
-        markdown_text = markdown_output()
+        buttons = []
+        #display all jios in the chat for selection
+        for item in jioInfo.val().keys():
+            buttons.append(InlineKeyboardButton(text=item, callback_data=item))
+
         update.message.reply_text(
-            text="I see that you are too lazy to scroll up. Here's a refresher.\n"+ jio_text + markdown_text,
-            reply_markup=InlineKeyboardMarkup([help_button]),
+            text='Select a jio',
+            reply_markup=InlineKeyboardMarkup(build_menu(buttons, n_cols=2)),
         )
+
+
+def seejio_handler(update, context, jio_name):
+    chatId = update.callback_query.message.chat.id
+    messageId = update.callback_query.message.message_id
+
+    #### TODO:change messages to be specific to chat id
+    current_messages = db.child("jios").child("messageId").get().val()
+    current_messages[messageId] = jio_name
+    db.child("jios").child("messageId").set(current_messages)
+
+
+    creator = db.child("jios").child("chatId").child(chatId).child(jio_name).child('creator').get().val()
+    attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
+
+    jio_name = "*" + jio_name + "*"
+    jio_txt = creator + " started a jio: " + jio_name +  "\n\nMinions attending:"
+
+    markdown_attendees = "\n"
+    markdown_attendees += "".join(["- " + str(s) + "\n" for s in attendees_list])
+    update.callback_query.edit_message_text(text=jio_txt + markdown_attendees,
+                                            reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown")
 
 
 ##########################################################
@@ -198,12 +296,6 @@ if __name__ == '__main__':
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    global list_of_attendees
-    list_of_attendees = []
-
-    global state_of_jios
-    state_of_jios = False
-
     dp.add_handler(CommandHandler("start", start_handler))
     dp.add_handler(CommandHandler("vending", vending_handler))
     dp.add_handler(CommandHandler("vendingfaulty", vendingfaulty_handler))
@@ -214,11 +306,10 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("encouragement", encouragement_handler))
     dp.add_handler(CommandHandler("love", love_handler))
     dp.add_handler(CommandHandler("random", random_handler))
-    dp.add_handler(CommandHandler("jio", command_handler_start))
-    dp.add_handler(CommandHandler('jiohelper', command_handler_help))
-    dp.add_handler(CommandHandler('jiohelperleave', command_handler_leave))
-    dp.add_handler(CommandHandler("closejio", closejio_handler))
-    dp.add_handler(CommandHandler("seejio", seejio_handler))
+    dp.add_handler(CommandHandler("seejios", seejios_handler))
+    dp.add_handler(CommandHandler("jio", startjio_handler))
+
+
 
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
 
