@@ -7,7 +7,7 @@ from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
-#from firebase import Firebase
+from firebase import Firebase
 
 
 # Enabling logging
@@ -19,7 +19,7 @@ logger = logging.getLogger()
 mode = os.getenv("MODE")
 TOKEN = os.getenv("TOKEN")
 DATABASE = os.getenv("DATABASE")
-"""
+
 config = {
     "apiKey": "",
     "authDomain": "",
@@ -29,7 +29,6 @@ config = {
 firebase = Firebase(config)
 db = firebase.database()
 
-"""
 
 if mode == "dev":
     def run(updater):
