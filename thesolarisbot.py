@@ -291,28 +291,6 @@ def seejio_handler(update, context, jio_name):
     update.callback_query.edit_message_text(text=jio_txt + markdown_attendees,
                                             reply_markup=InlineKeyboardMarkup([jio_options_button]), parse_mode="Markdown")
 
-
-##########################################################
-
-"""Annoucements"""
-
-def announcement_handler(update, context):
-    chatId = update.message.chat.id
-    announcement = db.child("announcements").child("chatId").child(chatId).get()
-    logger.info(announcement.val())
-    if chatId == 168927701:
-        update.message.reply_text(date.today().weekday())
-
-def make_annoucement(bot):
-    chatId = update.message.chat.id
-    announcement = db.child("announcements").child("chatId").child(chatId).get().val()
-    logger.info(announcement.val())
-    if date.today().weekday()==6:
-        bot.sendMessage(chat_id=168927701, text=annoucement)
-
-    #if chatId == 168927701:
-    #    update.message.reply_text(date.today().weekday())
-
 #########################################################
 
 if __name__ == '__main__':
