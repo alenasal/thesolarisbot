@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import sys
+import telegram
 from datetime import date
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
@@ -46,6 +47,9 @@ else:
     logger.error("No MODE specified!")
     sys.exit(1)
 
+"""
+Random functions
+"""
 
 def start_handler(update, context):
     # Creating a handler-function for /start command
@@ -105,10 +109,11 @@ def random_handler(update, context):
     update.message.reply_text("Here's a random 4-digit number: " + str(number))
 
 
-####### JIOS #########
+##################################
 
 
 """
+Jios
 TODO:Close jios
 def closejio_handler(update, context):
     user = update.message.from_user
@@ -215,7 +220,7 @@ def command_handler_leave_jio(update,context):
         if (user_name in attendees_list) and (len(attendees_list)>1):
             db.child("jios").child("chatId").child(chatId).child(jio_name).child("attendees").child(user_name).remove()
         elif (user_name in attendees_list) and (len(attendees_list)==1):
-            update.callback_query.message.reply_text("You can't leave the jio as you are the last man standing")
+            update.callback_query.message.reply_text(user_name + ", you can't leave this jio as you are the last man standing")
 
 
         attendees_list = db.child("jios").child("chatId").child(chatId).child(jio_name).child('attendees').get().val()
@@ -289,6 +294,26 @@ def seejio_handler(update, context, jio_name):
 
 ##########################################################
 
+"""Annoucements"""
+
+def announcement_handler(update, context):
+    chatId = update.message.chat.id
+    announcement = db.child("announcements").child("chatId").child(chatId).get()
+    logger.info(announcement.val())
+    if chatId == 168927701:
+        update.message.reply_text(date.today().weekday())
+
+def make_annoucement(bot):
+    chatId = update.message.chat.id
+    announcement = db.child("announcements").child("chatId").child(chatId).get().val()
+    logger.info(announcement.val())
+    if date.today().weekday()==6:
+        bot.sendMessage(chat_id=168927701, text=annoucement)
+
+    #if chatId == 168927701:
+    #    update.message.reply_text(date.today().weekday())
+
+#########################################################
 
 if __name__ == '__main__':
     logger.info("Starting bot")
@@ -309,8 +334,20 @@ if __name__ == '__main__':
     dp.add_handler(CommandHandler("seejios", seejios_handler))
     dp.add_handler(CommandHandler("jio", startjio_handler))
 
-
-
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
+
+
+
+    """ Temp way to send daily reminders to specific chat"""
+    bot = telegram.Bot(token=TOKEN)
+    day = date.today().weekday()
+
+    try:
+        if (db.child("announcements").child("chatId").child(-392017887).child('status').get().val()!=day):
+            db.child("announcements").child("chatId").child(-392017887).child('status').set(day)
+            announcement = db.child("announcements").child("chatId").child(-392017887).get().val()
+            bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
+    except:
+        logger.info('No announcements today')
 
     run(updater)
