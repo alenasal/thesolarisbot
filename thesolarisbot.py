@@ -8,6 +8,8 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Updater, CommandHandler
 from firebase import Firebase
+import schedule
+import time
 
 
 # Enabling logging
@@ -146,7 +148,7 @@ def startjio_handler(update, context):
 
         #if no jios in chat
         if db.child("jios").child("chatId").child(chatId).get().val() == None:
-            db.child("jios").child("chatId").child(chatId).child(new_jio).set({'attendees': {'personA':True}, 'creator':user.first_name})
+            db.child("jios").child("chatId").child(chatId).child(new_jio).set({'attendees': {user.first_name:True}, 'creator':user.first_name})
         else:
             jioInfo = db.child("jios").child("chatId").child(chatId).get()
             # add a new jio
@@ -313,10 +315,13 @@ if __name__ == '__main__':
 
     dp.add_handler(CallbackQueryHandler(callback_query_handler))
 
+
+
     # Temp way to send daily reminders to specific chat
     bot = telegram.Bot(token=TOKEN)
     day = date.today().weekday()
 
+    """
     try:
         if (db.child("announcements").child("chatId").child(-392017887).child('status').get().val()!=day):
             db.child("announcements").child("chatId").child(-392017887).child('status').set(day)
@@ -324,6 +329,31 @@ if __name__ == '__main__':
             bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
     except:
         logger.info('No announcements today')
+    """
 
     run(updater)
+
+
+    def job():
+        try:
+            if (db.child("announcements").child("chatId").child(-392017887).child('status').get().val() != day):
+                db.child("announcements").child("chatId").child(-392017887).child('status').set(day)
+                announcement = db.child("announcements").child("chatId").child(-392017887).get().val()
+                bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
+        except:
+            logger.info('No announcements today')
+
+
+    #schedule.every(3).minutes.do(job)
+    #schedule.every().hour.do(job)
+    #schedule.every().day.at("10:30").do(job)
+    #schedule.every(5).to(10).minutes.do(job)
+    #schedule.every().monday.do(job)
+    schedule.every().sunday.at("23:59").do(job)
+    #schedule.every().minute.at(":17").do(job)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 
