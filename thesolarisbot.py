@@ -56,7 +56,7 @@ def start_handler(update, context):
     # Creating a handler-function for /start command
     user = update.message.from_user
     logger.info("User %s started the bot", user.first_name)
-    update.message.reply_text("Hello "+ user.first_name + "!\nUse /jio <description of jio> to start a jio.\nUse /vending <approx time> to activate the secret vending machine alert.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingfixed to inform everyone of the revival of the vending machine. \nPress /others to see other functions.")
+    update.message.reply_text("Hello "+ user.first_name + "!\nUse /jio <description of jio> to start a jio.\nPress /seejios to see all jios.\nUse /vending <approx time> to activate the secret vending machine alert.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingfixed to inform everyone of the revival of the vending machine. \nPress /others to see other functions.")
 
 def vending_handler(update, context):
     user = update.message.from_user
@@ -326,15 +326,15 @@ if __name__ == '__main__':
 
     def job():
         try:
-            if (db.child("announcements").child("chatId").child(-10014920927).child('status').get().val() != day):
-                db.child("announcements").child("chatId").child(-10014920927).child('status').set(day)
-                announcement = db.child("announcements").child("chatId").child(-10014920927).get().val()
-                bot.sendMessage(chat_id=-10014920927, text=announcement[str(day)])
+            if (db.child("announcements").child("chatId").child(-1001492092754).child('status').get().val() != day):
+                db.child("announcements").child("chatId").child(-1001492092754).child('status').set(day)
+                announcement = db.child("announcements").child("chatId").child(-1001492092754).get().val()
+                bot.sendMessage(chat_id=-1001492092754, text=announcement[str(day)])
         except:
             logger.info('No announcements today')
 
 
-    schedule.every().day.at("00:30").do(job)
+    schedule.every().day.at("00:45").do(job)
 
 
     while True:
