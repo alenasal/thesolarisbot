@@ -56,7 +56,7 @@ def start_handler(update, context):
     # Creating a handler-function for /start command
     user = update.message.from_user
     logger.info("User %s started the bot", user.first_name)
-    update.message.reply_text("Hello "+ user.first_name + "!\nUse /vending <approx time> to activate the secret vending machine alert.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingfixed to inform everyone of the revival of the vending machine. \nPress /others to see other functions.")
+    update.message.reply_text("Hello "+ user.first_name + "!\nUse /jio <description of jio> to start a jio.\nUse /vending <approx time> to activate the secret vending machine alert.\nPress /vendingfaulty to deliver the unfortunate news of the vending machine breakdown.\nPress /vendingfixed to inform everyone of the revival of the vending machine. \nPress /others to see other functions.")
 
 def vending_handler(update, context):
     user = update.message.from_user
@@ -321,36 +321,21 @@ if __name__ == '__main__':
     bot = telegram.Bot(token=TOKEN)
     day = date.today().weekday()
 
-    """
-    try:
-        if (db.child("announcements").child("chatId").child(-392017887).child('status').get().val()!=day):
-            db.child("announcements").child("chatId").child(-392017887).child('status').set(day)
-            announcement = db.child("announcements").child("chatId").child(-392017887).get().val()
-            bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
-    except:
-        logger.info('No announcements today')
-    """
-
     run(updater)
 
 
     def job():
         try:
-            if (db.child("announcements").child("chatId").child(-392017887).child('status').get().val() != day):
-                db.child("announcements").child("chatId").child(-392017887).child('status').set(day)
-                announcement = db.child("announcements").child("chatId").child(-392017887).get().val()
-                bot.sendMessage(chat_id=-392017887, text=announcement[str(day)])
+            if (db.child("announcements").child("chatId").child(-10014920927).child('status').get().val() != day):
+                db.child("announcements").child("chatId").child(-10014920927).child('status').set(day)
+                announcement = db.child("announcements").child("chatId").child(-10014920927).get().val()
+                bot.sendMessage(chat_id=-10014920927, text=announcement[str(day)])
         except:
             logger.info('No announcements today')
 
 
-    #schedule.every(3).minutes.do(job)
-    #schedule.every().hour.do(job)
-    #schedule.every().day.at("10:30").do(job)
-    #schedule.every(5).to(10).minutes.do(job)
-    #schedule.every().monday.do(job)
-    schedule.every().sunday.at("23:59").do(job)
-    #schedule.every().minute.at(":17").do(job)
+    schedule.every().day.at("00:30").do(job)
+
 
     while True:
         schedule.run_pending()
