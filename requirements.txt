@@ -1,7 +1,7 @@
 python-telegram-bot==12.1.1
 requests==2.21.0
 firebase==3.0.1
-python-jwt==3.2.4
+python-jwt==3.3.4
 gcloud==0.18.3
 sseclient==0.0.24
 requests-toolbelt==0.9.1
